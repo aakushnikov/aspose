@@ -14,7 +14,10 @@ namespace Aspose.Model.Companies
 
 		public virtual decimal GetTotalSalaryAtDate(DateTime date)
 		{
-			return Employees.Sum(x => x.GetTotalSalaryAtDate(date));
+			decimal result = 0;
+			foreach(var employee in Employees)
+				result += employee.GetTotalSalaryAtDate(date);
+			return result;
 		}
 
 	}

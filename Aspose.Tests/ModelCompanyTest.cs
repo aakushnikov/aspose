@@ -9,55 +9,27 @@ namespace Aspose.Tests
 	[TestFixture]
 	public class ModelCompanyTest
 	{
-		List<IEmployee> _employees;
-		[SetUp]
-		public void Init()
+		[Test]
+		public void Test100Employees()
 		{
-			/* M ( S ( S ) E )		M		S		S
-			 *						|\		|		|
-			 * S ( M ( M E ))		S E		M		E
-			 *						|		|\
-			 * S ( E )				S		M E
-			 * */
-			var level1 = new List<IEmployee>()
+			Company company = new Company();
+			List<IEmployee> employees = new List<IEmployee>();
+
+			var salesSalary = new Salary("Sales", 1000, 1, 35, 0.3m, StaffBonusType.AllLevels, true);
+
+			for (int i = 0; i < 100; i++)
 			{
-				new Manager() { Id = "1", Name = "Manager11", HiringDate = DateTime.UtcNow.AddYears(-5), Salary = 100, Staff = null, Supervisor = null },
-				new Sales() { Id = "2", Name = "Sales11", HiringDate = DateTime.UtcNow.AddYears(-5), Salary = 100, Staff = null, Supervisor = null },
-				new Sales() { Id = "3", Name = "Sales12", HiringDate = DateTime.UtcNow.AddYears(-5), Salary = 100, Staff = null, Supervisor = null },
-			};
+				var employee = new Employee(i, "Sales " + i, new DateTime(1970, 1, 1), salesSalary);
+				if (i != 0)
+				{
+					employee.Staff.Add(employees[i - 1], employee);
+				}
+				employees.Add(employee);
+			}
 
-			var level2 = new List<IEmployee>()
-			{
-				new Manager() { Id = "4", Name = "Manager21", HiringDate = DateTime.UtcNow.AddYears(-5), Salary = 100, Staff = null, Supervisor = level1[1] },
-				new Sales() { Id = "5", Name = "Sales21", HiringDate = DateTime.UtcNow.AddYears(-5), Salary = 100, Staff = null, Supervisor = level1[0] },
-				new Employee() { Id = "6", Name = "Employee21", HiringDate = DateTime.UtcNow.AddYears(-5), Salary = 100, Staff = null, Supervisor = level1[2] },
-				new Employee() { Id = "10", Name = "Employee22", HiringDate = DateTime.UtcNow.AddYears(-5), Salary = 100, Staff = null, Supervisor = level1[0] }, 
-			};
+			company.Employees = employees;
 
-			var level3 = new List<IEmployee>()
-			{
-				new Manager() { Id = "7", Name = "Manager31", HiringDate = DateTime.UtcNow.AddYears(-5), Salary = 100, Staff = null, Supervisor = level2[1] },
-				new Sales() { Id = "8", Name = "Sales31", HiringDate = DateTime.UtcNow.AddYears(-5), Salary = 100, Staff = null, Supervisor = level2[0] },
-				new Employee() { Id = "9", Name = "Employee31", HiringDate = DateTime.UtcNow.AddYears(-5), Salary = 100, Staff = null, Supervisor = level2[1] },
-			};
-
-			level1[0].Staff = new List<IEmployee> { level2[1], level2[3] };
-			level1[1].Staff = new List<IEmployee> { level2[0] };
-			level1[2].Staff = new List<IEmployee> { level2[2] };
-
-			level2[0].Staff = new List<IEmployee> { level3[1] };
-			level2[1].Staff = new List<IEmployee> { level3[0], level3[2] };
-
-			_employees = level1;
-		}
-
-		[Theory]
-		[TestCase(553.5)]
-		public void IsTotalSalaryAtDateCorrect(decimal expectedTotalSalary)
-		{
-			var company = new Company();
-			company.Employees = _employees;
-			Assert.AreEqual(company.GetTotalSalaryAtDate(DateTime.UtcNow), expectedTotalSalary);
+			Console.WriteLine("Total: " + company.GetTotalSalaryAtDate(new DateTime(2020, 1, 1)));
 		}
 	}
 }

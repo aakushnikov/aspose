@@ -2,13 +2,15 @@
 {
 	public interface IEmployee
 	{
-		string Id { get; set; }
+		int Id { get; set; }
 		string Name { get; set; }
-		decimal Salary { get; set; }
+		ISalary Salary { get; set; }
 		DateTime HiringDate { get; set; }
-		List<IEmployee> Staff { get; set; }
-		IEmployee Supervisor { get; set; }
+		IStaff Staff { get; }
+		IEmployee? Supervisor { get; }
 
+		void SetStaff(IStaff staff);
+		void SetSupervisor(IEmployee? employee);
 		decimal GetTotalSalaryAtDate(DateTime date);
 	}
 }
