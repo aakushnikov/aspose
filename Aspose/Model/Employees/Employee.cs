@@ -4,6 +4,8 @@
 	{
 		private IEmployee? _supervisor;
 		private IStaff _staff;
+		private decimal _cachedSalary;
+		private DateTime _cachedDate;
 
 		public int Id { get; set; }
 		public string Name { get; set; }
@@ -68,6 +70,9 @@
 
 		public decimal GetTotalSalaryAtDate(DateTime date)
 		{
+			if (_cachedDate == date.Date)
+				return _cachedSalary;
+
 			var years = new DateTime(
 				(date.Date - HiringDate.Date)
 				.Ticks).Year - 1;
@@ -83,45 +88,54 @@
 						total += employee.GetTotalSalaryAtDate(date) * Salary.StaffBonusRate / 100;
 					break;
 				case StaffBonusType.AllLevels:
-					foreach (var employee in Staff)
+
+					var queue = new Queue<IEmployee>();
+					var list = new List<IEmployee>();
+					GetTotalStaff(list, this);
+					var data = list.Where(e => e.Staff.Count() == 0).ToList();
+					FillQueue(data, queue);
+
+					while (queue.Count > 0)
+					{
+						var employee = queue.Dequeue();
 						total += employee.GetTotalSalaryAtDate(date) * Salary.StaffBonusRate / 100;
+					}
 					break;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(Salary.StaffBonusType));
 			}
-			return Math.Round(total, 2);
-		}
-		/*
 
-		// sales
-		public override decimal GetTotalSalaryAtDate(DateTime date)
-		{
-			var total = base.GetTotalSalaryAtDate(date);
-			total += GetTotalStaffSalaryAtDate(date, Staff);
-			return total;
+			total = Math.Round(total, 2);
+			
+			_cachedDate = date.Date;
+			_cachedSalary = total;
+
+			return _cachedSalary;
 		}
 
-		private decimal GetTotalStaffSalaryAtDate(DateTime date, List<IEmployee> list)
+		public void GetTotalStaff(IList<IEmployee> list, IEmployee employee)
 		{
-			if (list == null) return 0;
-			if (list.Count == 0) return 0;
-			decimal total = 0;
-			foreach (IEmployee employee in list)
+			foreach (var e in employee.Staff)
 			{
-				total += employee.GetTotalSalaryAtDate(date) * premium;
-				total += GetTotalStaffSalaryAtDate(date, employee.Staff);
+				list.Add(e);
+				GetTotalStaff(list, e);
 			}
-			return Math.Round(total, 2);
 		}
-		// manager
-		public override decimal GetTotalSalaryAtDate(DateTime date)
+
+		public void FillQueue(IList<IEmployee> level, Queue<IEmployee> queue)
 		{
-			var total = base.GetTotalSalaryAtDate(date);
-			if (Staff != null && Staff.Count > 0)
-				total += Staff.Sum(x => x.Salary) * premium;
-			return Math.Round(total, 2);
+			var next = new List<IEmployee>();
+			foreach (var e in level)
+			{
+				queue.Enqueue(e);
+				if (e.Supervisor != null)
+					if (!next.Contains(e.Supervisor))
+						next.Add(e.Supervisor);
+			}
+			if (next.Count > 0)		
+				FillQueue(next, queue);
 		}
-		*/
+
 
 	}
 }
